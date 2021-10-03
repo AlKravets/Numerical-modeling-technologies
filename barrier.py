@@ -73,7 +73,7 @@ class U_FormBarrier (ABC_Barrier):
     def __init__(self, M: int):
         self.M = M
         self.__creation_cloloc_discr_dots()
-        self.discrete_approx_dots, self.colocation_dots = self.__creation_cloloc_discr_dots()
+        self.discrete_approx_dots, self.colocation_dots, self.z = self.__creation_cloloc_discr_dots()
         self.break_off_dots = np.array([self.discrete_approx_dots[0],self.discrete_approx_dots[-1]])
 
 
@@ -109,11 +109,10 @@ class U_FormBarrier (ABC_Barrier):
         colocation_dots = z[1:-1:2]
         discrete_approx_dots = z[::2]
 
-        return discrete_approx_dots,colocation_dots
+        return discrete_approx_dots,colocation_dots, z
 
     def points_for_graph(self):
-        d = np.concat([self.discrete_approx_dots,self.colocation_dots])
-        return d.real, d.imag
+        return self.z.real.copy(), self.z.imag.copy()
 
         
 
