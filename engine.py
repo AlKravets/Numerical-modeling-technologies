@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.linalg.linalg import norm
 import barrier
 
 
@@ -7,7 +8,7 @@ class Engine:
     Класс в котором должна вычислятся вся физика.
     Для получения данных нужно будет толко подставить сетку.
     '''
-    def __init__(self, bar: barrier.ABC_Barrier,V_inf: complex = 1 + 0j, M : int = 20, delta : float = 5*10**-2):
+    def __init__(self, bar: barrier.ABC_Barrier,V_inf: complex = 1 + 0j, delta : float = 5*10**-2):
         """
         Инициализация объекта.
         V_inf -- начальная скорость
@@ -16,7 +17,7 @@ class Engine:
         delta -- параметр для избежания деления на ноль
         """
         self.V_inf = V_inf
-        self.M = M
+        # self.M = M
         self.delta = delta
         
         self.bar = bar
@@ -143,9 +144,9 @@ class Engine:
         публичная функция для вычисления безразмерного давления в текущий момент в точках z
         """
         print('--------')
-        q = (self.Gi[1:] - self.Gi[:-1])/self.tau
+        q = (self.Gi - self.prev_Gi)/self.tau
         Q = [q[0]]
-        for item in q[1:]:
+        for item in q[1:-1]:
             Q.append(Q[-1]+item)
         Q = np.array(Q)
         D = np.array([self.disc_dots.real[1:] - self.disc_dots.real[:-1],
@@ -177,16 +178,15 @@ class Engine:
 
         if self.n == 0:
             print(d_phi_dt_dipol)
-            # return 1 - np.sum(np.abs(self.V_t(z)),axis =0)**2/np.abs(self.V_inf)**2 - 2/ np.abs(self.V_inf)**2 *(d_phi_dt_dipol)
-            return d_phi_dt_dipol
+            return 1 - np.sum(np.abs(self.V_t(z)),axis =0)**2/np.abs(self.V_inf)**2 - 2/ np.abs(self.V_inf)**2 *(d_phi_dt_dipol)
+            # return d_phi_dt_dipol
         else:
             # print(self.Lv_dots.shape)
             # print(self.Lv_dots)
             print(self.gamma_p_i.shape)
             
             sigma = self.gamma_p_i/self.tau           
-            _Gp = np.hstack((q,q[-1]))
-            q_p = np.take(_Gp, self.index_p_dots) + sigma[:,0]
+            q_p = np.take(q, self.index_p_dots) + sigma[:,0]
 
             # print(q_p.shape)
             # print(self.p_dots.shape)
@@ -217,16 +217,21 @@ class Engine:
             print(np.max(sigma))
             _v2 = sigma.reshape(-1,1) * _v1
             print(_v2.shape)
+            
 
 
             d_phi_dt_convect = np.sum(d_p[...,np.newaxis] *self._V_tech(z, Lv_mean_dots),axis = (0,1)) -\
-                np.sum(sigma.reshape(-1,1)* np.sum(self.V_t(self.Lv_dots).reshape(2,-1,1)* self._V_tech(z, self.Lv_dots), axis =0), axis= 0)
+                np.sum(self.gamma_p_i.reshape(-1,1)* np.sum(self.V_t(self.Lv_dots).reshape(2,-1,1)* self._V_tech(z, self.Lv_dots), axis =0), axis= 0)
             d_phi_dt_convect = d_phi_dt_convect.reshape(*z.shape)
             # print(d_phi_dt_convect.shape)
 
             return 1 - np.sum(self.V_t(z)**2,axis =0)/np.abs(self.V_inf)**2 - 2/ np.abs(self.V_inf)**2 *(d_phi_dt_dipol + d_phi_dt_convect)
             # return d_phi_dt_convect
+            # return d_phi_dt_convect + d_phi_dt_dipol
+            # return np.sum(self.gamma_p_i.reshape(-1,1)* np.sum(self.V_t(self.Lv_dots).reshape(2,-1,1)* self._V_tech(z, self.Lv_dots), axis =0), axis= 0).reshape(*z.shape)
             # return d_phi_dt_dipol
+            # return 1 - np.sum(self.V_t(z)**2,axis =0)/np.abs(self.V_inf)**2
+
 
 
     
@@ -351,6 +356,7 @@ class Engine:
         """
         self._update_Lv()
 
+        self.prev_Gi = self.Gi.copy()
         self._update_Gi()
 
         self.n+=1
@@ -484,7 +490,9 @@ def kostil(lv_dots, two_delta):
 
 if __name__ =="__main__":
     import matplotlib.pyplot as plt
+    import matplotlib.colors as mcolors
     size = 1.5
+    size = 6
     step = 100
     
     scopes  = ((-size, 1*size),(-size, 1*size))
@@ -507,12 +515,13 @@ if __name__ =="__main__":
     # dots = np.array([[x0, x1, x2], [y0, y1, y2]])
     # dots = np.array([[x2,x1,x0],[y2,y1,y0]])
     dots = np.array([[x0, x0], [y0 - 0.5, y0 + 0.5]])
+    dots = np.array([[x0, x0], [y0 + 0.5, y0 - 0.5]])
     bar = barrier.LinearyPiecewiseBarrier(20, dots)
     # bar = barrier.U_FormBarrier(20)
     eng = Engine(bar, V_inf = V_inf)
     print(eng.Gi)
     print(f'eng.index_p_dots {eng.index_p_dots}')
-    for i in range(10):
+    for i in range(270):
         print(f'{i+1}-----------------------------------')
         eng.update()
         
@@ -523,15 +532,17 @@ if __name__ =="__main__":
     ax.plot(*bar.points_for_graph(), linewidth= 2, color = 'black')
 
     for i in range(len(eng.p_dots)):
-        ax.plot(eng.Lv_dots[i].real, eng.Lv_dots[i].imag)
+        # ax.plot(eng.Lv_dots[i].real, eng.Lv_dots[i].imag)
         ax.scatter(eng.Lv_dots[i].real, eng.Lv_dots[i].imag)
 
     V = eng.V_t(z)
 
     c = eng.C_t(z)
     print(c)
+    offset = mcolors.TwoSlopeNorm(vmin=-np.max(np.abs(c)),
+                                  vcenter=0., vmax=np.max(np.abs(c)))
     cmap = 'seismic'
-    cs = ax.contourf(x,y,c, levels = 50,cmap=plt.get_cmap(cmap))
+    cs = ax.contourf(x,y,c, levels = 100,cmap=plt.get_cmap(cmap), norm = offset)
     cbar= fig.colorbar(cs, ax = ax)
     
     
