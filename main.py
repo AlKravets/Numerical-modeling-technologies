@@ -159,13 +159,13 @@ x0, y0 = 0, 0
 
 # plate
 dots_plate = np.array([[x0, x0], [y0 + 0.5, y0 - 0.5]])
-#
+# 2
 dots_2 = np.array([[x0, x0 -.25, x0 -.25, x0, x0, x0-.25],
             [y0, y0, y0 + .25, y0+.25 , y0+ .5 , y0+.5]])
-#
+# 3
 dots_3 = np.array([[x0, x0+.25, x0, x0+0.25, x0],
             [y0, y0+ .25, y0 + .5 , y0+ .75, y0 + 1]])
-#
+# 5
 dots_5 = np.array([[x0, x0+0.5, x0+0.5, x0, x0, x0+0.5],
                 [y0, y0, y0+0.5, y0+0.5, y0+0.75, y0+0.75]])
 
@@ -175,8 +175,8 @@ def main():
     
     count_updates = 100
 
-    x_lim = [-1,2]
-    y_lim = [-1,1]
+    x_lim = [-1,4]
+    y_lim = [-1.5,1.5]
     xsteps = 100
     ysteps = 50
 
@@ -185,10 +185,10 @@ def main():
 
     V_inf = 1 + 0j
 
-    M = 30
+    M = 20
 
-    # bar = barrier.LinearyPiecewiseBarrier(M,dots_plate)
-    bar = barrier.U_FormBarrier(M)    
+    bar = barrier.LinearyPiecewiseBarrier(M,dots_plate)
+    # bar = barrier.U_FormBarrier(M)    
 
     eng = engine.Engine(bar, V_inf = V_inf, delta= 5*10** -2)
 
@@ -239,15 +239,15 @@ if __name__ == "__main__":
 
     # V_inf = 1 + 0j
 
-    # M = 30
+    # M = 20
 
-    # # bar = barrier.LinearyPiecewiseBarrier(M,dots_plate)
-    # bar = barrier.U_FormBarrier(M)    
+    # bar = barrier.LinearyPiecewiseBarrier(M,dots_2)
+    # # bar = barrier.U_FormBarrier(M)    
     # barrier_plot(bar, 
     # grid= True,
     # x_lim=(-0.5,0.5),
-    # y_lim=(-0.2,0.5),
-    # title= 'U form barrier',
+    # y_lim=(-0.25,0.75),
+    # title= '2 form barrier',
     # show_discr_dots= True,
     # discr_dots_legend= 'discrete approximation dots',
     # show_coloc_dots= True,
