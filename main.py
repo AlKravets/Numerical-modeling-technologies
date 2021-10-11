@@ -56,7 +56,7 @@ def barrier_plot(
         discr_dots= disc, color_discr_dots = color_discr_dots, discr_dots_legend = discr_dots_legend,
         coloc_dots= coloc, color_coloc_dots = color_coloc_dots, coloc_dots_legend= coloc_dots_legend,
         break_off_dots= brf, color_break_off_dots= color_break_off_dots, break_off_dots_legend = break_off_dots_legend)
-    
+    ax.legend(loc ='upper left')
     plt.show()
     
 
@@ -175,8 +175,8 @@ def main():
     
     count_updates = 100
 
-    x_lim = [-1,1.5]
-    y_lim = [-1.5,1.5]
+    x_lim = [-1,2]
+    y_lim = [-1,1]
     xsteps = 100
     ysteps = 50
 
@@ -227,3 +227,31 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+    # x_lim = [-1,1.5]
+    # y_lim = [-1.5,1.5]
+    # xsteps = 100
+    # ysteps = 50
+
+    # x = np.linspace(*x_lim, xsteps)
+    # y = np.linspace(*y_lim, ysteps)
+
+    # V_inf = 1 + 0j
+
+    # M = 30
+
+    # # bar = barrier.LinearyPiecewiseBarrier(M,dots_plate)
+    # bar = barrier.U_FormBarrier(M)    
+    # barrier_plot(bar, 
+    # grid= True,
+    # x_lim=(-0.5,0.5),
+    # y_lim=(-0.2,0.5),
+    # title= 'U form barrier',
+    # show_discr_dots= True,
+    # discr_dots_legend= 'discrete approximation dots',
+    # show_coloc_dots= True,
+    # coloc_dots_legend= 'colocation dots',
+    # show_break_off_dots=True,
+    # break_off_dots_legend='break off dots',
+    # )
