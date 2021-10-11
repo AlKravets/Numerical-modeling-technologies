@@ -93,14 +93,14 @@ class U_FormBarrier (ABC_Barrier):
         _c = _M // 3
         p0, p1, p2 = _c, _c+(_M % 3) , _c
 
-        y_part_0 = np.linspace(0.75, 0, p0, endpoint=False)
-        x_part_0 = np.array([-0.25]* p0)
+        y_part_0 = np.linspace(0.3, 0, p0, endpoint=False)
+        x_part_0 = np.array([-0.15]* p0)
 
-        y_part_2 = np.linspace(0, 0.75, p2)
-        x_part_2 = np.array([0.25]* p2)
+        y_part_2 = np.linspace(0, 0.3, p2)
+        x_part_2 = np.array([0.15]* p2)
 
-        x_part_1 = np.linspace(-0.25, 0.25, p1, endpoint=False)
-        y_part_1 = 64*x_part_1**4 -0.25
+        x_part_1 = np.linspace(-0.15, 0.15, p1, endpoint=False)
+        y_part_1 = 1/0.15*x_part_1**2 -0.15
 
         x = np.concatenate([x_part_0,x_part_1,x_part_2])
         y = np.concatenate([y_part_0,y_part_1,y_part_2])
@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
 
-    U_FormBarrier(30)
+    bar = U_FormBarrier(30)
 
     x0 = y0 = 0
 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     y = [y0, y0, y0 + .25, y0+.25 , y0+ .5 , y0+.5]
     bf_d = np.array([x,y])
 
-    bar = LinearyPiecewiseBarrier(20, bf_d)
+    # bar = LinearyPiecewiseBarrier(20, bf_d)
     
 
     print(bar.get_discrete_approx_dots())

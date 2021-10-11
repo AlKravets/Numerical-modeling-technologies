@@ -143,7 +143,9 @@ class Engine:
         """
         публичная функция для вычисления безразмерного давления в текущий момент в точках z
         """
-        print('--------')
+        if self.n == 0:
+            return np.zeros(z.shape)
+        
         q = (self.Gi - self.prev_Gi)/self.tau
         Q = [q[0]]
         for item in q[1:-1]:
@@ -152,85 +154,31 @@ class Engine:
         D = np.array([self.disc_dots.real[1:] - self.disc_dots.real[:-1],
                         self.disc_dots.imag[1:] - self.disc_dots.imag[:-1]])*Q
         disc_dots_means = (self.disc_dots[1:] + self.disc_dots[:-1]) /2
-        
-        # print(D, disc_dots_means)
-
-        # _v = self._V_tech(z,disc_dots_means)
-        # print(_v.shape, _v)
-        # _v1 = D.reshape((*D.shape,1))*_v
-        # print(_v1.shape, _v1)
-        # print(np.sum(_v1, axis =(0,1)).shape)
-
-        
-        # _v = self._V_tech(z,self.disc_dots)
-        # print(_v.shape)
-        # _v1 = self.V_t(self.disc_dots)[...,np.newaxis] * _v
-        # print(_v1.shape)
-        # print((self.Gi.reshape(-1,1)*np.sum(_v1, axis =(0))).shape)
-
 
         d_phi_dt_dipol = np.sum(self._V_tech(z,disc_dots_means) * D[...,np.newaxis], axis=(0,1)) -\
             np.sum( np.sum(self._V_tech(z,self.disc_dots) * self.V_t(self.disc_dots)[...,np.newaxis], axis = 0) *self.Gi.reshape(-1,1), axis = 0)
+
+
         d_phi_dt_dipol = d_phi_dt_dipol.reshape(*z.shape)
+
+
+        sigma = self.gamma_p_i/self.tau           
+        q_p = np.take(q, self.index_p_dots) + sigma[:,0]
+
+        d_p = (self.p_dots - self.Lv_dots[:,0])
+        d_p = np.array([d_p.real, d_p.imag])*q_p.reshape(1,-1)
+
         
-        print(d_phi_dt_dipol.shape)
+        Lv_mean_dots = (self.Lv_dots[:,0] + self.p_dots) / 2
+      
 
+        d_phi_dt_convect = np.sum(d_p[...,np.newaxis] *self._V_tech(z, Lv_mean_dots),axis = (0,1)) -\
+            np.sum(self.gamma_p_i.reshape(-1,1)* np.sum(self.V_t(self.Lv_dots).reshape(2,-1,1)* self._V_tech(z, self.Lv_dots), axis =0), axis= 0)
+        d_phi_dt_convect = d_phi_dt_convect.reshape(*z.shape)
+        
 
-        if self.n == 0:
-            print(d_phi_dt_dipol)
-            return 1 - np.sum(np.abs(self.V_t(z)),axis =0)**2/np.abs(self.V_inf)**2 - 2/ np.abs(self.V_inf)**2 *(d_phi_dt_dipol)
-            # return d_phi_dt_dipol
-        else:
-            # print(self.Lv_dots.shape)
-            # print(self.Lv_dots)
-            print(self.gamma_p_i.shape)
+        return 1 - np.sum(self.V_t(z)**2,axis =0)/np.abs(self.V_inf)**2 - 2/ np.abs(self.V_inf)**2 *(d_phi_dt_dipol + d_phi_dt_convect)
             
-            sigma = self.gamma_p_i/self.tau           
-            q_p = np.take(q, self.index_p_dots) + sigma[:,0]
-
-            # print(q_p.shape)
-            # print(self.p_dots.shape)
-
-            d_p = (self.p_dots - self.Lv_dots[:,0])
-            d_p = np.array([d_p.real, d_p.imag])*q_p.reshape(1,-1)
-            # print(d_p.shape)
-            
-            Lv_mean_dots = (self.Lv_dots[:,0] + self.p_dots) / 2
-            
-            # print(Lv_mean_dots.shape)
-            
-            # _v  = self._V_tech(z, Lv_mean_dots)
-            # print(_v.shape)
-            # _v1 = d_p[...,np.newaxis] * _v
-            # print(_v1.shape)
-            # _v2 = np.sum(_v1, axis = (0,1))
-            # print(_v2.shape)
-
-            _v = self._V_tech(z, self.Lv_dots)
-            print(_v.shape)
-            _V = self.V_t(self.Lv_dots).reshape(2,-1)
-            print(_V.shape)
-            _v1 = np.sum(_V[...,np.newaxis] * _v,axis = 0)
-            _v1 = np.sum(self.V_t(self.Lv_dots).reshape(2,-1,1)* _v, axis =0)
-            print(_v1.shape)
-            print(sigma.shape)
-            print(np.max(sigma))
-            _v2 = sigma.reshape(-1,1) * _v1
-            print(_v2.shape)
-            
-
-
-            d_phi_dt_convect = np.sum(d_p[...,np.newaxis] *self._V_tech(z, Lv_mean_dots),axis = (0,1)) -\
-                np.sum(self.gamma_p_i.reshape(-1,1)* np.sum(self.V_t(self.Lv_dots).reshape(2,-1,1)* self._V_tech(z, self.Lv_dots), axis =0), axis= 0)
-            d_phi_dt_convect = d_phi_dt_convect.reshape(*z.shape)
-            # print(d_phi_dt_convect.shape)
-
-            return 1 - np.sum(self.V_t(z)**2,axis =0)/np.abs(self.V_inf)**2 - 2/ np.abs(self.V_inf)**2 *(d_phi_dt_dipol + d_phi_dt_convect)
-            # return d_phi_dt_convect
-            # return d_phi_dt_convect + d_phi_dt_dipol
-            # return np.sum(self.gamma_p_i.reshape(-1,1)* np.sum(self.V_t(self.Lv_dots).reshape(2,-1,1)* self._V_tech(z, self.Lv_dots), axis =0), axis= 0).reshape(*z.shape)
-            # return d_phi_dt_dipol
-            # return 1 - np.sum(self.V_t(z)**2,axis =0)/np.abs(self.V_inf)**2
 
 
 
