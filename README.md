@@ -51,7 +51,7 @@ dots_5 = np.array([[x0, x0+0.5, x0+0.5, x0, x0, x0+0.5],
 
 как видите, сначала идет список координат вершин по x, а потом  по y.
 
-[barrier 2 form](/pictures/ex_2_barrier.png)
+![barrier 2 form](/pictures/ex_2_barrier.png)
 
 
 
